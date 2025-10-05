@@ -18,8 +18,13 @@ class ProductController extends Controller
     {
         $perPage = request('per_page', 10);
         $search = request('search', '');
-        
+        $categoryId = request('category_id');
+
         $query = Product::with(['category', 'supplier']);
+
+        if (!empty($categoryId)) {
+            $query->where('category_id', $categoryId);
+        }
         
         if (!empty($search)) {
             $query->where(function($q) use ($search) {
