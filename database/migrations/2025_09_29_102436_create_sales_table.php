@@ -15,7 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('invoice_number')->unique();
             $table->dateTime('date');
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreign('user_id')->references('id')->on('employees')->cascadeOnDelete();
             $table->string('table_number')->nullable();
             $table->integer('total');
             $table->integer('discount')->default(0);

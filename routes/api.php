@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\SaleDetailController;
 use App\Http\Controllers\Api\UserController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\Api\SaleController as TransactionController;
 
 // Auth routes (public)
 Route::prefix('auth')->group(function () {
@@ -29,6 +30,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('suppliers', SupplierController::class);
     Route::apiResource('products', ProductController::class);
     Route::apiResource('employees', EmployeeController::class);
+    Route::apiResource('transactions', TransactionController::class);
     
     // Product stock management
     Route::apiResource('product-stocks', ProductStockController::class);

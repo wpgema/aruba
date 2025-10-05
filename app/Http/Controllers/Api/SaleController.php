@@ -64,31 +64,33 @@ class SaleController extends Controller
         ]);
     }
 
-    public function store(StoreSaleRequest $request)
+    public function store(Request $request)
     {
+        $request->validate([
+            'date' => 'required|date',
+            'payment_method' => 'required|string|in:cash,card,qris',
+            'status' => 'required|string|in:paid,unpaid,cancelled',
+            'products' => 'required|array|min:1',
+            'products.*.product_id' => 'required|exists:products,id',
+            'products.*.quantity' => 'required|integer|min:1',
+            'products.*.price' => 'required|integer|min:0',
+            'paid_amount' => 'required|integer|min:0',
+            'discount' => 'nullable|integer|min:0',
+        ]);
+
         try {
             DB::beginTransaction();
-
-            $data = $request->validated();
-            
-            // Generate invoice number
-            $data['invoice_number'] = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
-            $data['user_id'] = Auth::id();
-            
-            // Calculate totals
+            $data = $request->all();
             $total = 0;
             foreach ($data['products'] as $product) {
                 $total += $product['quantity'] * $product['price'];
             }
-            
             $data['total'] = $total;
             $data['grand_total'] = $total - ($data['discount'] ?? 0);
             $data['change_amount'] = $data['paid_amount'] - $data['grand_total'];
-            
-            // Create sale
+            $data['invoice_number'] = 'INV-' . date('Ymd') . '-' . strtoupper(Str::random(6));
+            $data['user_id'] = Auth::id();
             $sale = Sale::create($data);
-            
-            // Create sale details
             foreach ($data['products'] as $productData) {
                 SaleDetail::create([
                     'sale_id' => $sale->id,
@@ -98,27 +100,20 @@ class SaleController extends Controller
                     'subtotal' => $productData['quantity'] * $productData['price'],
                     'note' => $productData['note'] ?? null,
                 ]);
-
-                // Update product stock
                 $product = Product::find($productData['product_id']);
                 if ($product) {
                     $product->decrement('stock', $productData['quantity']);
                 }
             }
-            
             DB::commit();
-            
             $sale->load(['user', 'saleDetails.product']);
-            
             return response()->json([
                 'success' => true,
                 'message' => 'Sale created successfully',
-                'data' => new SaleResource($sale)
+                'data' => $sale
             ], 201);
-            
         } catch (\Exception $e) {
             DB::rollBack();
-            
             return response()->json([
                 'success' => false,
                 'message' => 'Failed to create sale: ' . $e->getMessage()
