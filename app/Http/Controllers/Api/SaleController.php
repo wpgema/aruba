@@ -47,7 +47,8 @@ class SaleController extends Controller
             });
         }
 
-        $sales = $query->orderBy('created_at', 'desc')->paginate(10);
+    $perPage = $request->get('per_page', 10);
+    $sales = $query->orderBy('created_at', 'desc')->paginate($perPage);
         
         return response()->json([
             'success' => true,
