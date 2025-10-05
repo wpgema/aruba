@@ -34,6 +34,13 @@ class SaleResource extends JsonResource
                     'email' => $this->user->email,
                 ];
             }),
+            'employee' => $this->whenLoaded('employee', function () {
+                return [
+                    'id' => $this->employee->id,
+                    'name' => $this->employee->name,
+                    'email' => $this->employee->email ?? null,
+                ];
+            }),
             'sale_details' => SaleDetailResource::collection($this->whenLoaded('saleDetails')),
             'sale_details_count' => $this->when($this->relationLoaded('saleDetails'), function () {
                 return $this->saleDetails->count();

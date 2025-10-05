@@ -18,7 +18,7 @@ class SaleController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Sale::with(['user', 'saleDetails.product'])
+        $query = Sale::with(['employee', 'saleDetails.product'])
             ->withCount('saleDetails');
 
         // Filter by date range
@@ -41,14 +41,14 @@ class SaleController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('invoice_number', 'like', "%{$search}%")
-                    ->orWhereHas('user', function ($userQuery) use ($search) {
+                    ->orWhereHas('employee', function ($userQuery) use ($search) {
                         $userQuery->where('name', 'like', "%{$search}%");
                     });
             });
         }
 
-    $perPage = $request->get('per_page', 10);
-    $sales = $query->orderBy('created_at', 'desc')->paginate($perPage);
+        $perPage = $request->get('per_page', 10);
+        $sales = $query->orderBy('created_at', 'desc')->paginate($perPage);
         
         return response()->json([
             'success' => true,
@@ -107,7 +107,7 @@ class SaleController extends Controller
                 }
             }
             DB::commit();
-            $sale->load(['user', 'saleDetails.product']);
+            $sale->load(['employee', 'saleDetails.product']);
             return response()->json([
                 'success' => true,
                 'message' => 'Sale created successfully',
@@ -124,7 +124,7 @@ class SaleController extends Controller
 
     public function show($id)
     {
-        $sale = Sale::with(['user', 'saleDetails.product.category'])
+        $sale = Sale::with(['employee', 'saleDetails.product.category'])
             ->withCount('saleDetails')
             ->findOrFail($id);
         
@@ -188,7 +188,7 @@ class SaleController extends Controller
             
             DB::commit();
             
-            $sale->load(['user', 'saleDetails.product']);
+            $sale->load(['employee', 'saleDetails.product']);
             
             return response()->json([
                 'success' => true,
