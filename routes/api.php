@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Sales management
     Route::apiResource('sales', SaleController::class);
     Route::get('sales-report', [SaleController::class, 'getSalesReport']);
+    Route::get('sales-report/products', [SaleController::class, 'getSalesByProductReport']);
     
     // Sale details management
     Route::apiResource('sale-details', SaleDetailController::class);

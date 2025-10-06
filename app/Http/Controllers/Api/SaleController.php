@@ -270,4 +270,42 @@ class SaleController extends Controller
             ]
         ]);
     }
+
+    public function getSalesByProductReport(Request $request)
+    {
+        $query = DB::table('sale_details')
+            ->join('products', 'sale_details.product_id', '=', 'products.id')
+            ->join('sales', 'sale_details.sale_id', '=', 'sales.id')
+            ->select(
+                'sale_details.product_id',
+                'products.name as product_name',
+                DB::raw('SUM(sale_details.quantity) as total_quantity'),
+                DB::raw('SUM(sale_details.subtotal) as total_sales')
+            );
+
+        if ($request->has(['start_date', 'end_date'])) {
+            $query->whereBetween('sales.date', [$request->start_date, $request->end_date]);
+        }
+
+        $perPage = (int) $request->get('per_page', 10);
+        $page = (int) $request->get('page', 1);
+
+        $paginator = $query->groupBy('sale_details.product_id', 'products.name')
+            ->orderByDesc('total_sales')
+            ->paginate($perPage, ['*'], 'page', $page);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Sales by product retrieved successfully',
+            'data' => $paginator->items(),
+            'pagination' => [
+                'current_page' => $paginator->currentPage(),
+                'last_page' => $paginator->lastPage(),
+                'per_page' => $paginator->perPage(),
+                'total' => $paginator->total(),
+                'from' => $paginator->firstItem(),
+                'to' => $paginator->lastItem(),
+            ]
+        ]);
+    }
 }
