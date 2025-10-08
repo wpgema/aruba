@@ -22,7 +22,7 @@ class Sale extends Model
         'discount',
         'grand_total',
         'payment_method',
-        'paid_amount',
+        'paid_amount', 
         'change_amount',
         'status',
     ];

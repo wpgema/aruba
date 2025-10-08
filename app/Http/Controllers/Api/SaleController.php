@@ -238,38 +238,38 @@ class SaleController extends Controller
         }
     }
 
-    public function getSalesReport(Request $request)
-    {
-        $query = Sale::query();
+    // public function getSalesReport(Request $request)
+    // {
+    //     $query = Sale::query();
 
-        if ($request->has(['start_date', 'end_date'])) {
-            $query->whereBetween('date', [$request->start_date, $request->end_date]);
-        }
+    //     if ($request->has(['start_date', 'end_date'])) {
+    //         $query->whereBetween('date', [$request->start_date, $request->end_date]);
+    //     }
 
-        $totalSales = $query->sum('grand_total');
-        $totalTransactions = $query->count();
-        $avgTransaction = $totalTransactions > 0 ? $totalSales / $totalTransactions : 0;
+    //     $totalSales = $query->sum('grand_total');
+    //     $totalTransactions = $query->count();
+    //     $avgTransaction = $totalTransactions > 0 ? $totalSales / $totalTransactions : 0;
 
-        $salesByMethod = $query->groupBy('payment_method')
-            ->selectRaw('payment_method, count(*) as count, sum(grand_total) as total')
-            ->get();
+    //     $salesByMethod = $query->groupBy('payment_method')
+    //         ->selectRaw('payment_method, count(*) as count, sum(grand_total) as total')
+    //         ->get();
 
-        $salesByStatus = $query->groupBy('status')
-            ->selectRaw('status, count(*) as count, sum(grand_total) as total')
-            ->get();
+    //     $salesByStatus = $query->groupBy('status')
+    //         ->selectRaw('status, count(*) as count, sum(grand_total) as total')
+    //         ->get();
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Sales report retrieved successfully',
-            'data' => [
-                'total_sales' => $totalSales,
-                'total_transactions' => $totalTransactions,
-                'average_transaction' => $avgTransaction,
-                'sales_by_payment_method' => $salesByMethod,
-                'sales_by_status' => $salesByStatus,
-            ]
-        ]);
-    }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Sales report retrieved successfully',
+    //         'data' => [
+    //             'total_sales' => $totalSales,
+    //             'total_transactions' => $totalTransactions,
+    //             'average_transaction' => $avgTransaction,
+    //             'sales_by_payment_method' => $salesByMethod,
+    //             'sales_by_status' => $salesByStatus,
+    //         ]
+    //     ]);
+    // }
 
     public function getSalesByProductReport(Request $request)
     {
