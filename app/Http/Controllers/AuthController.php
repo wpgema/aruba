@@ -13,11 +13,9 @@ class AuthController extends Controller
     public function login(LoginRequest $request)
     {
         $credentials = $request->validated();
-        
-        // Find employee by username
+        $remember = $request->input('remember', false);
         $employee = Employee::where('username', $credentials['username'])->first();
 
-        // Verify password using Hash::check
         if (!$employee || !Hash::check($credentials['password'], $employee->password)) {
             return response()->json([
                 'success' => false,
@@ -25,7 +23,6 @@ class AuthController extends Controller
             ], 401);
         }
 
-        // Check if employee is active
         if (!$employee->is_active) {
             return response()->json([
                 'success' => false,
@@ -33,8 +30,17 @@ class AuthController extends Controller
             ], 403);
         }
 
-        // Create token
-        $token = $employee->createToken('e-kasir-token')->plainTextToken;
+        $tokenResult = $employee->createToken('e-kasir-token');
+        $token = $tokenResult->plainTextToken;
+
+        try {
+            if (!$remember) {
+                $expiry = now()->addDay();
+                $tokenResult->accessToken->expires_at = $expiry;
+                $tokenResult->accessToken->save();
+            }
+        } catch (\Throwable $e) {
+        }
 
         return response()->json([
             'success' => true,
