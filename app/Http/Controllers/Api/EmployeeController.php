@@ -48,7 +48,6 @@ class EmployeeController extends Controller
     {
         $data = $request->validated();
         
-        // Remove password fields if they are empty (user doesn't want to change password)
         if (empty($data['password'])) {
             unset($data['password']);
             unset($data['password_confirmation']);
