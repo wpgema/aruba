@@ -20,23 +20,15 @@ class SaleController extends Controller
     {
         $query = Sale::with(['employee', 'saleDetails.product'])
             ->withCount('saleDetails');
-
-        // Filter by date range
         if ($request->has(['start_date', 'end_date'])) {
             $query->whereBetween('date', [$request->start_date, $request->end_date]);
         }
-
-        // Filter by status
         if ($request->has('status')) {
             $query->where('status', $request->status);
         }
-
-        // Filter by payment method
         if ($request->has('payment_method')) {
             $query->where('payment_method', $request->payment_method);
         }
-
-        // Search by invoice number or user name
         if ($request->has('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -46,22 +38,30 @@ class SaleController extends Controller
                     });
             });
         }
+        $wantsPagination = $request->has('page') || $request->has('per_page') || $request->boolean('paginate', false);
 
-        $perPage = $request->get('per_page', 10);
-        $sales = $query->orderBy('created_at', 'desc')->paginate($perPage);
-        
+        if ($wantsPagination) {
+            $perPage = (int) $request->get('per_page', 10);
+            $sales = $query->orderBy('created_at', 'desc')->paginate($perPage);
+            return response()->json([
+                'success' => true,
+                'message' => 'Sales retrieved successfully',
+                'data' => SaleResource::collection($sales->items()),
+                'pagination' => [
+                    'current_page' => $sales->currentPage(),
+                    'last_page' => $sales->lastPage(),
+                    'per_page' => $sales->perPage(),
+                    'total' => $sales->total(),
+                    'from' => $sales->firstItem(),
+                    'to' => $sales->lastItem(),
+                ]
+            ]);
+        }
+        $sales = $query->orderBy('created_at', 'desc')->get();
         return response()->json([
             'success' => true,
             'message' => 'Sales retrieved successfully',
-            'data' => SaleResource::collection($sales->items()),
-            'pagination' => [
-                'current_page' => $sales->currentPage(),
-                'last_page' => $sales->lastPage(),
-                'per_page' => $sales->perPage(),
-                'total' => $sales->total(),
-                'from' => $sales->firstItem(),
-                'to' => $sales->lastItem(),
-            ]
+            'data' => SaleResource::collection($sales),
         ]);
     }
 
